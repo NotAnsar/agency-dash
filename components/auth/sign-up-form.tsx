@@ -93,6 +93,7 @@ export function SignUpForm() {
 					? err.errors[0]?.message
 					: 'Failed to create account';
 			setErrors({ general: errorMessage });
+		} finally {
 			setIsLoading(false);
 		}
 	};
@@ -124,7 +125,6 @@ export function SignUpForm() {
 					? err.errors[0]?.message
 					: 'Invalid verification code';
 			setErrors({ code: errorMessage });
-		} finally {
 			setIsLoading(false);
 		}
 	};

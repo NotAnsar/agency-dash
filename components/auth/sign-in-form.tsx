@@ -76,7 +76,6 @@ export function SignInForm() {
 					? err.errors[0]?.message
 					: 'Invalid email or password';
 			setErrors({ general: errorMessage });
-		} finally {
 			setIsLoading(false);
 		}
 	};
