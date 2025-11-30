@@ -1,11 +1,20 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)']);
+const isPublicRoute = createRouteMatcher([
+	'/sign-in(.*)',
+	'/sign-up(.*)',
+	'/sso-callback(.*)', // Add this!
+]);
 
 export default clerkMiddleware(async (auth, request) => {
 	const { userId } = await auth();
 	const url = request.nextUrl;
+
+	// Allow SSO callback to process without interference
+	if (url.pathname.startsWith('/sso-callback')) {
+		return NextResponse.next();
+	}
 
 	// If user is logged in and tries to access auth pages, redirect to dashboard
 	if (

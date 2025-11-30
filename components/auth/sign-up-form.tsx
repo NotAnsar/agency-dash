@@ -33,6 +33,7 @@ export function SignUpForm() {
 	const signUpWithGoogle = async () => {
 		if (!isLoaded) return;
 
+		setIsLoading(true);
 		try {
 			await signUp.authenticateWithRedirect({
 				strategy: 'oauth_google',
@@ -42,6 +43,7 @@ export function SignUpForm() {
 		} catch (err: unknown) {
 			console.error('OAuth error:', err);
 			setErrors({ general: 'Failed to sign up with Google' });
+			setIsLoading(false);
 		}
 	};
 
@@ -179,7 +181,9 @@ export function SignUpForm() {
 				variant='outline'
 				onClick={signUpWithGoogle}
 				className='w-full'
+				disabled={isLoading}
 			>
+				{isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
 				<svg className='mr-2 h-4 w-4' viewBox='0 0 24 24'>
 					<path
 						fill='currentColor'

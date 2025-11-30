@@ -26,6 +26,7 @@ export function SignInForm() {
 	const signInWithGoogle = async () => {
 		if (!isLoaded) return;
 
+		setIsLoading(true);
 		try {
 			await signIn.authenticateWithRedirect({
 				strategy: 'oauth_google',
@@ -35,6 +36,7 @@ export function SignInForm() {
 		} catch (err: unknown) {
 			console.error('OAuth error:', err);
 			setErrors({ general: 'Failed to sign in with Google' });
+			setIsLoading(false);
 		}
 	};
 
@@ -88,7 +90,9 @@ export function SignInForm() {
 				variant='outline'
 				onClick={signInWithGoogle}
 				className='w-full'
+				disabled={isLoading}
 			>
+				{isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
 				<svg className='mr-2 h-4 w-4' viewBox='0 0 24 24'>
 					<path
 						fill='currentColor'
