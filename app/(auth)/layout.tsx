@@ -13,7 +13,7 @@ export default async function AuthenticatedLayout({
 }>) {
 	return (
 		<div
-			className='relative h-screen flex-col items-center justify-center grid grid-cols-1 mx-8 sm:mx-0 lg:max-w-none lg:grid-cols-2 lg:px-0'
+			className='relative h-screen flex-col items-center justify-center grid grid-cols-1 px-8 sm:mx-0 lg:max-w-none lg:grid-cols-2 lg:px-0'
 			style={{
 				background: 'url("/download.svg") center center / cover no-repeat',
 			}}
