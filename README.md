@@ -37,6 +37,8 @@ The application follows a modular architecture:
 
 ### Diagram
 
+![System Diagram](diagram/system-architecture-diagram.png)
+
 ```
 [User] -> [Clerk Auth] -> [Dashboard]
                     |
