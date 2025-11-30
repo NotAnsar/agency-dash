@@ -109,7 +109,3 @@ Deploy to Vercel:
 1. Connect your GitHub repo to Vercel.
 2. Add environment variables in Vercel dashboard.
 3. Deploy automatically on push.
-
-## License
-
-This project is for educational purposes.
