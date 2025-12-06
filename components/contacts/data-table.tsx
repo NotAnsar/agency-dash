@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -8,7 +9,6 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable,
 } from '@tanstack/react-table';
@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { PaginationTable } from '@/components/data-table/pagination';
+import { Button } from '@/components/ui/button';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -33,21 +33,32 @@ interface DataTableProps<TData, TValue> {
 		limit: number;
 		percentage: number;
 	};
+	pagination?: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+	};
+	currentSearch?: string;
 }
 
 export function ContactsDataTable<TData, TValue>({
 	columns,
 	data,
 	rateLimit,
+	pagination,
+	currentSearch = '',
 }: DataTableProps<TData, TValue>) {
+	const router = useRouter();
+	const searchParams = useSearchParams();
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [searchValue, setSearchValue] = useState(currentSearch);
 
 	const table = useReactTable({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
 		onColumnFiltersChange: setColumnFilters,
@@ -56,12 +67,31 @@ export function ContactsDataTable<TData, TValue>({
 			sorting,
 			columnFilters,
 		},
-		initialState: {
-			pagination: {
-				pageSize: 20,
-			},
-		},
 	});
+
+	// Handle server-side search
+	const handleSearch = (value: string) => {
+		setSearchValue(value);
+	};
+
+	const handleSearchSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		const params = new URLSearchParams(searchParams.toString());
+		if (searchValue) {
+			params.set('search', searchValue);
+		} else {
+			params.delete('search');
+		}
+		params.set('page', '1'); // Reset to page 1 on new search
+		router.push(`?${params.toString()}`);
+	};
+
+	// Handle server-side pagination
+	const handlePageChange = (newPage: number) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set('page', newPage.toString());
+		router.push(`?${params.toString()}`);
+	};
 
 	return (
 		<div className='space-y-4'>
@@ -82,14 +112,16 @@ export function ContactsDataTable<TData, TValue>({
 			)}
 
 			{/* Search */}
-			<Input
-				placeholder='Filter by name...'
-				value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-				onChange={(event) =>
-					table.getColumn('name')?.setFilterValue(event.target.value)
-				}
-				className='max-w-sm'
-			/>
+			<form onSubmit={handleSearchSubmit} className='flex gap-2 max-w-sm'>
+				<Input
+					placeholder='Search contacts...'
+					value={searchValue}
+					onChange={(e) => handleSearch(e.target.value)}
+				/>
+				<Button type='submit' variant='outline'>
+					Search
+				</Button>
+			</form>
 
 			{/* Table */}
 			<div className='rounded-md border'>
@@ -143,8 +175,36 @@ export function ContactsDataTable<TData, TValue>({
 				</Table>
 			</div>
 
-			{/* Pagination */}
-			<PaginationTable table={table} />
+			{/* Server-side Pagination */}
+			{pagination && pagination.totalPages > 1 && (
+				<div className='flex items-center justify-between'>
+					<p className='text-sm text-muted-foreground'>
+						Page {pagination.page} of {pagination.totalPages} (
+						{pagination.total} total contacts)
+					</p>
+					<div className='flex items-center gap-2'>
+						<Button
+							variant='outline'
+							size='sm'
+							onClick={() => handlePageChange(pagination.page - 1)}
+							disabled={pagination.page <= 1}
+						>
+							Previous
+						</Button>
+						<Button
+							variant='outline'
+							size='sm'
+							onClick={() => handlePageChange(pagination.page + 1)}
+							disabled={
+								pagination.page >= pagination.totalPages ||
+								(rateLimit?.remaining ?? 0) <= 0
+							}
+						>
+							Next
+						</Button>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

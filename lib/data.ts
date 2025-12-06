@@ -93,9 +93,9 @@ export async function getContacts({
 		};
 	}
 
-	// Limit results to remaining views
+	// Calculate how many contacts we can fetch (respecting remaining limit)
 	const effectiveLimit = Math.min(limit, remaining);
-	const skip = (page - 1) * effectiveLimit;
+	const skip = (page - 1) * limit; // Use original limit for consistent pagination
 
 	const where = search
 		? {
@@ -126,8 +126,10 @@ export async function getContacts({
 		prisma.contact.count({ where }),
 	]);
 
-	// Log the view
-	await logContactView(userId, contacts.length);
+	// Log the view (only if we fetched contacts)
+	if (contacts.length > 0) {
+		await logContactView(userId, contacts.length);
+	}
 
 	// Get updated stats
 	const stats = await getUserStats(userId);
@@ -136,9 +138,9 @@ export async function getContacts({
 		contacts,
 		pagination: {
 			page,
-			limit: effectiveLimit,
+			limit,
 			total,
-			totalPages: Math.ceil(total / effectiveLimit),
+			totalPages: Math.ceil(total / limit),
 		},
 		rateLimit: {
 			limitReached: false,
